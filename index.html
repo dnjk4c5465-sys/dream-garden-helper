@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#eef7f0">
+<title>織夢助手｜花種升級計算器</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#e9f5ed,#f7f4e8);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",Arial,sans-serif;color:#4a4a42}
+.wrap{max-width:640px;margin:auto;padding:16px 14px 46px}
+h1{text-align:center;font-size:24px;color:#47795a;margin:6px 0 16px}
+.card{background:#fffdf7;border:1px solid #cce2cf;border-radius:19px;padding:16px;margin:12px 0;box-shadow:0 10px 30px rgba(71,111,78,.12)}
+h2{font-size:18px;color:#47795a;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+label{display:block;font-size:13px;color:#7c8179;margin-bottom:6px}
+input,select{width:100%;min-height:46px;border:1px solid #bdd6c0;background:#fff;border-radius:12px;padding:10px 12px;font-size:17px;color:#4a4a42}
+.field-row{display:grid;grid-template-columns:1.1fr .75fr 42px;gap:8px;align-items:end;background:#f4faf4;border:1px solid #dcebdc;border-radius:14px;padding:12px;margin:9px 0}
+.custom-box{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#edf5ec;border-radius:12px;padding:10px}
+.remove{width:42px;height:46px;border:0;border-radius:11px;background:#f8e8e8;color:#c75a5a;font-size:21px}
+.secondary{width:100%;padding:12px;border-radius:12px;border:1px dashed #82b98c;background:#f3fbf4;color:#4f8c5f;font-size:16px}
+.primary{width:100%;padding:14px;border:0;border-radius:14px;background:linear-gradient(180deg,#7bc980,#4f9f67);color:#fff;font-size:18px;font-weight:700;box-shadow:0 7px 0 #3c8950}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#f0f8f1;border-radius:13px;padding:12px;text-align:center}
+.stat b{display:block;margin-top:4px;color:#3f8656;font-size:22px}
+.result-main{background:linear-gradient(135deg,#effaef,#fff6d9);border:1px solid #cfe4c4;border-radius:16px;padding:14px;margin-bottom:10px}
+.big{font-size:31px;font-weight:800;color:#3f8656}
+.muted{color:#7c8179;font-size:13px;line-height:1.6}
+.warn{color:#c75a5a;font-weight:700}
+.pill{display:inline-block;margin:8px 4px 0 0;padding:6px 9px;border-radius:999px;background:#e6f3e8;color:#4a895c;font-size:12px}
+.empty{padding:18px;text-align:center;color:#7c8179;border:1px dashed #cbdccb;border-radius:13px}
+.hide{display:none!important}
+@media(max-width:430px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.field-row{grid-template-columns:1fr .72fr 42px}.custom-box{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🌸 織夢助手</h1>
+
+<section class="card">
+<h2>花種升級計算器</h2>
+<div class="grid">
+<div>
+<label for="currentLevel">目前等級</label>
+<select id="currentLevel">
+<option value="1">Lv.1</option><option value="2">Lv.2</option><option value="3">Lv.3</option><option value="4">Lv.4</option><option value="5">Lv.5</option><option value="6">Lv.6</option><option value="7">Lv.7</option><option value="8">Lv.8</option><option value="9">Lv.9</option><option value="10">Lv.10</option><option value="11">Lv.11</option><option value="12" selected>Lv.12</option><option value="13">Lv.13</option><option value="14">Lv.14</option><option value="15">Lv.15</option><option value="16">Lv.16</option><option value="17">Lv.17</option>
+</select>
+</div>
+<div>
+<label for="targetLevel">目標等級</label>
+<select id="targetLevel">
+<option value="2">Lv.2</option><option value="3">Lv.3</option><option value="4">Lv.4</option><option value="5">Lv.5</option><option value="6">Lv.6</option><option value="7">Lv.7</option><option value="8">Lv.8</option><option value="9">Lv.9</option><option value="10">Lv.10</option><option value="11">Lv.11</option><option value="12">Lv.12</option><option value="13">Lv.13</option><option value="14">Lv.14</option><option value="15">Lv.15</option><option value="16">Lv.16</option><option value="17">Lv.17</option><option value="18" selected>Lv.18</option>
+</select>
+</div>
+<div class="full">
+<label for="currentNectar">目前該花種花蜜</label>
+<input id="currentNectar" type="number" min="0" inputmode="numeric" value="16">
+<div id="levelHint" class="muted"></div>
+</div>
+</div>
+</section>
+
+<section class="card">
+<h2>商會田地配置</h2>
+<div id="fieldRows"></div>
+<div id="emptyState" class="empty hide">尚未新增田地</div>
+<button id="addFieldButton" type="button" class="secondary">＋ 新增田地</button>
+<p class="muted">已知田地資料：Lv.10～Lv.13。其他等級可選「自訂」。</p>
+</section>
+
+<section class="card">
+<h2>採收估算</h2>
+<label for="dailyRounds">平均每天採收幾輪</label>
+<input id="dailyRounds" type="number" min="1" max="24" inputmode="numeric" value="4">
+</section>
+
+<button id="calculateButton" type="button" class="primary">開始計算</button>
+
+<section id="resultCard" class="card hide">
+<h2>計算結果</h2>
+<div id="errorBox" class="warn hide"></div>
+<div id="resultContent">
+<div class="result-main"><div class="muted">預估完成時間</div><div id="daysResult" class="big">—</div><div id="dateResult"></div></div>
+<div class="summary">
+<div class="stat">尚缺花蜜<b id="needResult">—</b></div>
+<div class="stat">需要採收<b id="roundResult">—</b></div>
+<div class="stat">每輪花蜜<b id="perRoundResult">—</b></div>
+<div class="stat">每日約得<b id="perDayResult">—</b></div>
+</div>
+<div><span id="fastestResult" class="pill">最快滿額：—</span><span id="latestResult" class="pill">最晚滿額：—</span></div>
+<p class="muted">※ 這是依平均每日採收輪數估算；只計算商會田地固定取得的花蜜。</p>
+</div>
+</section>
+</div>
+
+<script>
+(function(){
+"use strict";
+var UPGRADE={1:1,2:2,3:4,4:8,5:15,6:30,7:60,8:100,9:250,10:500,11:800,12:1200,13:2200,14:3600,15:5000,16:7500,17:9000,18:null,19:null};
+var FIELD={10:{capacity:24,secondsPerFlower:630},11:{capacity:26,secondsPerFlower:600},12:{capacity:28,secondsPerFlower:570},13:{capacity:30,secondsPerFlower:540}};
+function el(id){return document.getElementById(id)}
+function options(selected){
+  var vals=[10,11,12,13,"custom"],html="";
+  for(var i=0;i<vals.length;i++){
+    var v=vals[i],label=v==="custom"?"自訂等級":"Lv."+v;
+    html+='<option value="'+v+'"'+(String(v)===String(selected)?' selected':'')+'>'+label+'</option>';
+  }
+  return html;
+}
+function refreshEmpty(){el("emptyState").classList.toggle("hide",el("fieldRows").children.length>0)}
+function addField(level,qty){
+  var row=document.createElement("div");
+  row.className="field-row";
+  row.innerHTML=
+  '<div><label>田地等級</label><select class="field-level">'+options(level||10)+'</select></div>'+
+  '<div><label>數量</label><input class="field-qty" type="number" min="0" value="'+(qty==null?1:qty)+'"></div>'+
+  '<button type="button" class="remove">×</button>'+
+  '<div class="custom-box hide"><div><label>每塊容量（朵）</label><input class="custom-capacity" type="number" min="1" value="20"></div><div><label>每朵生成時間（分鐘）</label><input class="custom-minutes" type="number" min="0.1" step="0.1" value="12"></div></div>';
+  var levelSel=row.querySelector(".field-level"),custom=row.querySelector(".custom-box");
+  levelSel.addEventListener("change",function(){custom.classList.toggle("hide",levelSel.value!=="custom")});
+  row.querySelector(".remove").addEventListener("click",function(){row.remove();refreshEmpty()});
+  el("fieldRows").appendChild(row);
+  refreshEmpty();
+}
+function hint(){
+  var c=Number(el("currentLevel").value);
+  el("levelHint").textContent=UPGRADE[c]?"目前等級升下一級共需要 "+UPGRADE[c]+" 花蜜":"此等級升下一級的花蜜需求尚未提供";
+}
+function duration(s){
+  var h=Math.floor(s/3600),m=Math.round((s%3600)/60);
+  return h+"小時"+(m?m+"分":"");
+}
+function error(msg){
+  el("resultCard").classList.remove("hide");
+  el("errorBox").textContent=msg;
+  el("errorBox").classList.remove("hide");
+  el("resultContent").classList.add("hide");
+}
+function calculate(){
+  try{
+    var current=Number(el("currentLevel").value),target=Number(el("targetLevel").value),progress=Math.max(0,Number(el("currentNectar").value)||0);
+    if(target<=current)throw Error("目標等級必須高於目前等級。");
+    var needed=0;
+    for(var lv=current;lv<target;lv++){
+      if(UPGRADE[lv]==null)throw Error("缺少 Lv."+lv+" → Lv."+(lv+1)+" 的花蜜需求資料。");
+      needed+=lv===current?Math.max(0,UPGRADE[lv]-progress):UPGRADE[lv];
+    }
+    var rows=el("fieldRows").querySelectorAll(".field-row");
+    if(!rows.length)throw Error("請先新增至少一組田地。");
+    var flowers=0,total=0,fast=Infinity,late=0;
+    for(var i=0;i<rows.length;i++){
+      var row=rows[i],level=row.querySelector(".field-level").value,qty=Math.max(0,Number(row.querySelector(".field-qty").value)||0);
+      if(!qty)continue;
+      var cap,spf;
+      if(level==="custom"){
+        cap=Math.max(1,Number(row.querySelector(".custom-capacity").value)||0);
+        spf=Math.max(1,(Number(row.querySelector(".custom-minutes").value)||0)*60);
+      }else{
+        cap=FIELD[level].capacity;spf=FIELD[level].secondsPerFlower;
+      }
+      var full=cap*spf;
+      flowers+=cap*qty;total+=qty;fast=Math.min(fast,full);late=Math.max(late,full);
+    }
+    if(!total)throw Error("田地數量不能全部為 0。");
+    var perRound=flowers*2,rounds=Math.ceil(needed/perRound),daily=Math.max(1,Number(el("dailyRounds").value)||1),days=rounds/daily;
+    var finish=new Date(Date.now()+days*86400000);
+    el("needResult").textContent=needed.toLocaleString();
+    el("roundResult").textContent=rounds.toLocaleString()+" 輪";
+    el("perRoundResult").textContent=perRound.toLocaleString();
+    el("perDayResult").textContent=(perRound*daily).toLocaleString();
+    el("daysResult").textContent=days<1?"約 "+Math.ceil(days*24)+" 小時":"約 "+days.toFixed(1)+" 天";
+    el("dateResult").textContent="約於 "+finish.toLocaleDateString("zh-TW")+" 完成";
+    el("fastestResult").textContent="最快滿額："+duration(fast);
+    el("latestResult").textContent="最晚滿額："+duration(late);
+    el("resultCard").classList.remove("hide");
+    el("errorBox").classList.add("hide");
+    el("resultContent").classList.remove("hide");
+  }catch(e){error(e.message||String(e))}
+}
+el("addFieldButton").addEventListener("click",function(){addField(10,1)});
+el("calculateButton").addEventListener("click",calculate);
+el("currentLevel").addEventListener("change",hint);
+addField(10,11);
+addField(13,1);
+hint();
+})();
+</script>
+</body>
+</html>
