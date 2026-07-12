@@ -32,11 +32,33 @@ input,select{width:100%;min-height:46px;border:1px solid #bdd6c0;background:#fff
 .empty{padding:18px;text-align:center;color:#7c8179;border:1px dashed #cbdccb;border-radius:13px}
 .hide{display:none!important}
 @media(max-width:430px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.field-row{grid-template-columns:1fr .72fr 42px}.custom-box{grid-template-columns:1fr}}
+
+.nav-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}
+.nav-tab{border:1px solid #bdd6c0;background:#f7fbf7;color:#4f7f5c;border-radius:12px;padding:11px;font-size:15px;font-weight:700}
+.nav-tab.active{background:#4f9f67;color:#fff;border-color:#4f9f67}
+.page{display:none}.page.active{display:block}
+.toolbar{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:12px}
+.toolbar button{border:0;border-radius:12px;padding:0 14px;background:#4f9f67;color:#fff;font-weight:700}
+.flower-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.flower-card{background:#f7fbf7;border:1px solid #d8e8d9;border-radius:14px;padding:12px}
+.flower-card h3{margin:0 0 7px;color:#47795a;font-size:16px}
+.flower-card img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;margin-bottom:8px;background:#eef4ee}
+.badge{display:inline-block;background:#e8f4e9;color:#4b865b;border-radius:999px;padding:4px 8px;font-size:12px;margin:2px 4px 2px 0}
+.status-box{padding:12px;border-radius:12px;background:#f4f8f4;color:#6f756e;font-size:13px}
+@media(max-width:430px){.flower-list{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
 <div class="wrap">
 <h1>🌸 織夢助手</h1>
+<div class="nav-tabs">
+<button class="nav-tab active" data-page="calculatorPage">升級計算</button>
+<button class="nav-tab" data-page="flowersPage">花種圖鑑</button>
+</div>
+<section id="calculatorPage" class="page active">
+
+
 
 <section class="card">
 <h2>花種升級計算器</h2>
@@ -91,6 +113,19 @@ input,select{width:100%;min-height:46px;border:1px solid #bdd6c0;background:#fff
 <div><span id="fastestResult" class="pill">最快滿額：—</span><span id="latestResult" class="pill">最晚滿額：—</span></div>
 <p class="muted">※ 這是依平均每日採收輪數估算；只計算商會田地固定取得的花蜜。</p>
 </div>
+</section>
+
+</section>
+<section id="flowersPage" class="page">
+<section class="card">
+<h2>花種圖鑑</h2>
+<div class="toolbar">
+<input id="flowerSearch" type="search" placeholder="搜尋花種名稱">
+<button id="reloadFlowers" type="button">重新整理</button>
+</div>
+<div id="flowerStatus" class="status-box">尚未載入花種資料</div>
+<div id="flowerList" class="flower-list" style="margin-top:12px"></div>
+</section>
 </section>
 </div>
 
@@ -184,6 +219,73 @@ el("currentLevel").addEventListener("change",hint);
 addField(10,11);
 addField(13,1);
 hint();
+
+var SUPABASE_URL="https://ppfzprahcitsbjtmuhrg.supabase.co";
+var SUPABASE_KEY="sb_publishable_xaba5s4ZaeJ1yuhxX1qW4w_jzphTait";
+var flowerRows=[];
+
+function pick(obj,keys,fallback){
+  for(var i=0;i<keys.length;i++){
+    var v=obj[keys[i]];
+    if(v!==undefined&&v!==null&&String(v).trim()!=="")return String(v);
+  }
+  return fallback||"";
+}
+function renderFlowers(){
+  var keyword=(el("flowerSearch").value||"").trim().toLowerCase();
+  var list=flowerRows.filter(function(item){
+    var name=pick(item,["name","flower_name","title","名稱","花名"],"未命名");
+    return !keyword||name.toLowerCase().indexOf(keyword)!==-1;
+  });
+  el("flowerList").innerHTML="";
+  if(!list.length){
+    el("flowerStatus").textContent=flowerRows.length?"找不到符合的花種":"資料表目前沒有花種資料";
+    return;
+  }
+  el("flowerStatus").textContent="共 "+list.length+" 筆花種";
+  list.forEach(function(item){
+    var name=pick(item,["name","flower_name","title","名稱","花名"],"未命名");
+    var score=pick(item,["score","points","prosperity","繁榮度","分數"],"");
+    var source=pick(item,["source","acquisition","obtain_method","取得方式","獲取方式"],"");
+    var image=pick(item,["image_url","image","photo_url","圖片"],"");
+    var available=pick(item,["available","is_available","obtainable","是否可獲"],"");
+    var card=document.createElement("article");
+    card.className="flower-card";
+    var imageHtml=image?'<img src="'+image.replace(/"/g,"&quot;")+'" alt="'+name.replace(/"/g,"&quot;")+'">':"";
+    var badges="";
+    if(score)badges+='<span class="badge">分數 '+score+'</span>';
+    if(available!=="")badges+='<span class="badge">'+((available==="true"||available==="1")?"可獲得":"暫不可獲")+'</span>';
+    card.innerHTML=imageHtml+"<h3>"+name+"</h3>"+badges+(source?'<p class="muted">取得方式：'+source+"</p>":"");
+    el("flowerList").appendChild(card);
+  });
+}
+async function loadFlowers(){
+  el("flowerStatus").textContent="正在讀取 Supabase 花種資料…";
+  el("flowerList").innerHTML="";
+  try{
+    var response=await fetch(SUPABASE_URL+"/rest/v1/flowers?select=*",{headers:{
+      "apikey":SUPABASE_KEY,
+      "Authorization":"Bearer "+SUPABASE_KEY
+    }});
+    if(!response.ok)throw new Error("讀取失敗（"+response.status+"）");
+    flowerRows=await response.json();
+    renderFlowers();
+  }catch(err){
+    el("flowerStatus").textContent=err.message||String(err);
+  }
+}
+document.querySelectorAll(".nav-tab").forEach(function(button){
+  button.addEventListener("click",function(){
+    document.querySelectorAll(".nav-tab").forEach(function(x){x.classList.remove("active")});
+    document.querySelectorAll(".page").forEach(function(x){x.classList.remove("active")});
+    button.classList.add("active");
+    el(button.getAttribute("data-page")).classList.add("active");
+    if(button.getAttribute("data-page")==="flowersPage"&&!flowerRows.length)loadFlowers();
+  });
+});
+el("flowerSearch").addEventListener("input",renderFlowers);
+el("reloadFlowers").addEventListener("click",loadFlowers);
+
 })();
 </script>
 </body>
